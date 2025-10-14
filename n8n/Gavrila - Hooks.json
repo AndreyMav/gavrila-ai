@@ -13,7 +13,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -800,
+        -960,
         128
       ],
       "id": "89f177bc-9e0b-4cad-a457-2f6c9401988b",
@@ -67,7 +67,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -176,
+        240,
         112
       ],
       "id": "89d8a6a2-b820-4d23-8586-c4b2db243347",
@@ -78,10 +78,10 @@
         "select": "channel",
         "channelId": {
           "__rl": true,
-          "value": "={{ $json.body.channel_id }}",
+          "value": "={{ $('Webhook').item.json.body.channel_id }}",
           "mode": "id"
         },
-        "text": "=<@{{ $json.body.user_id }}> asked:\n\n{{ $json.body.text }}",
+        "text": "=<@{{ $('Webhook').item.json.body.user_id }}> asked:\n\n{{ $('Webhook').item.json.body.text }}",
         "otherOptions": {
           "includeLinkToWorkflow": false
         }
@@ -89,7 +89,7 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        -592,
+        -176,
         128
       ],
       "id": "9f5e01f3-f9e0-490b-9cfe-9eb8725991be",
@@ -111,7 +111,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -384,
+        32,
         32
       ],
       "id": "6fce9b89-0f35-45c7-a5fb-dbb061c7c874",
@@ -126,7 +126,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -176,
+        240,
         304
       ],
       "id": "3b099654-0a49-462b-9275-d42a904cb473",
@@ -157,19 +157,94 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        96,
+        512,
         112
       ],
       "id": "600b778f-4152-408d-90de-94d56621c40d",
       "name": "Ask Gavrila"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "wuIS4lmxJ8DhDmoW",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/wuIS4lmxJ8DhDmoW",
+          "cachedResultName": "Gavrila - Configure"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -752,
+        128
+      ],
+      "id": "afe86f63-6ce5-416d-95b1-7477fb88cff5",
+      "name": "Configure"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0360747f-5e26-4b93-96b7-93a6e591aeab",
+              "leftValue": "={{ \n  ($('Configure').item.json.authorized_slack_user_ids || '')\n    .split(',')\n    .map(id => id.trim())\n    .includes($('Webhook').item.json.body.user_id)\n}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -544,
+        128
+      ],
+      "id": "0bbb81b2-5ffd-43f6-a4fd-147abaf9e3b5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Sorry, I don't know you well enough.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -336,
+        224
+      ],
+      "id": "cc711032-4c56-4639-86d3-a2470daaef89",
+      "name": "Respond to Webhook"
     }
   ],
+  "pinData": {},
   "connections": {
     "Webhook": {
       "main": [
         [
           {
-            "node": "Send a message",
+            "node": "Configure",
             "type": "main",
             "index": 0
           }
@@ -215,13 +290,42 @@
           }
         ]
       ]
+    },
+    "Configure": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "edf28ecc-801d-4e6f-89ba-6230fc6ecb53",
+  "versionId": "2195083d-2a86-433d-abee-f3fb9713a68a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"

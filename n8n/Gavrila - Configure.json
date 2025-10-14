@@ -3,26 +3,16 @@
   "nodes": [
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "f668c5ee-8a82-4bcd-b56d-791b85a70f17",
-              "name": "repository_url",
-              "value": "https://github.com/AndreyMav/gavrila-ai",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+        "inputSource": "passthrough"
       },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "id": "dc2fb6e0-b5a4-4a62-b823-20b7036e9c83",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
       "position": [
-        64,
-        -48
-      ],
-      "id": "d518432c-c358-4e01-9538-f56d5d4d5b98",
-      "name": "Configure Github"
+        256,
+        -128
+      ]
     },
     {
       "parameters": {
@@ -31,50 +21,20 @@
             {
               "id": "7b6c9afe-8e82-4991-b6bd-4dd90bbe848c",
               "name": "repository_url",
-              "value": "={{ $('Configure Github').item.json.repository_url }}",
+              "value": "https://github.com/AndreyMav/gavrila-ai",
               "type": "string"
             },
             {
               "id": "a87d9aa1-2460-4b52-b07d-b5cfbe5e2484",
               "name": "default_task_system",
-              "value": "={{ $('Set Default Task System').item.json.default_task_system }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        512,
-        -48
-      ],
-      "id": "7a9fd582-78aa-476c-997c-a86beb352d29",
-      "name": "Return"
-    },
-    {
-      "parameters": {
-        "inputSource": "passthrough"
-      },
-      "id": "9a54573e-c505-4715-8a30-09dfb5ea84a8",
-      "typeVersion": 1.1,
-      "name": "Start",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "position": [
-        -144,
-        -48
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "2a211454-e669-48f3-9612-da7c398206fc",
-              "name": "default_task_system",
               "value": "github",
               "type": "string"
+            },
+            {
+              "id": "e3f4a5b6-c7d8-9e0f-1a2b-3c4d5e6f7a8b",
+              "name": "authorized_slack_user_ids",
+              "value": "U09LHK2NA3T",
+              "type": "string"
             }
           ]
         },
@@ -83,11 +43,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        288,
-        -48
+        608,
+        -128
       ],
-      "id": "92ee6872-eb14-4a5c-88b8-6ca322a08f0e",
-      "name": "Set Default Task System"
+      "id": "f54d4809-032b-472f-a0c3-e8b6d574316e",
+      "name": "Configuration"
     }
   ],
   "pinData": {},
@@ -96,29 +56,7 @@
       "main": [
         [
           {
-            "node": "Configure Github",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Configure Github": {
-      "main": [
-        [
-          {
-            "node": "Set Default Task System",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Default Task System": {
-      "main": [
-        [
-          {
-            "node": "Return",
+            "node": "Configuration",
             "type": "main",
             "index": 0
           }
@@ -130,7 +68,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4db34a09-55eb-4061-9e61-88cdc7756493",
+  "versionId": "e7caa3ea-0041-49e1-a32e-272ddadf6d2f",
   "meta": {
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
   },

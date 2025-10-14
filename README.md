@@ -97,14 +97,20 @@ docker run -it --rm \
    - `Gavrila - Configure.json` - Repository configuration (update with your values)
    - `Gavrila - Ensure Task.json` - Task validation and creation
    - `Gavrila - Respond.json` - Response handling back to Slack
-3. **Important**: Update the repository URL in `Gavrila - Configure.json` to point to your repository
+3. **Important**: Update the configuration in `Gavrila - Configure.json`:
+   - `repository_url` - Set to your GitHub repository URL
+   - `authorized_slack_user_ids` - Comma-separated list of authorized Slack user IDs (e.g., `U09LHK2NA3T,U12345678`)
+   - `default_task_system` - Set to `github` or `linear` depending on your task management system
 
 ## How It Works
 
 ### Workflow Architecture
 
 1. **Slack Command** → User sends a slash command (e.g., `/gavrila Fix the login bug`) in Slack
-2. **n8n Webhook** → `Gavrila - Hooks` receives the command and sends acknowledgment to Slack
+2. **n8n Webhook** → `Gavrila - Hooks` receives the command and performs authorization check:
+   - Validates that the requesting user's Slack user ID is in the `authorized_slack_user_ids` list
+   - If unauthorized, responds with "Sorry, I don't know you well enough." and stops processing
+   - If authorized, sends acknowledgment to Slack and continues
 3. **Task Processing** → `Gavrila - Ask` workflow:
    - Uses OpenAI to proofread and clarify the task instructions
    - Ensures a task exists (creates if needed)
@@ -218,6 +224,38 @@ The workflow accepts task context in the following format:
 }
 ```
 
+## Security and Access Control
+
+### User Authorization
+Gavrila AI includes built-in user authorization to control who can trigger the coding agent:
+
+1. **Configure Authorized Users** in `Gavrila - Configure.json`:
+   ```json
+   {
+     "authorized_slack_user_ids": "U09LHK2NA3T,U12345678,U87654321"
+   }
+   ```
+   - Add comma-separated Slack user IDs of authorized users
+   - Leave empty to allow all users (not recommended)
+
+2. **How It Works**:
+   - When a Slack slash command is received, the webhook extracts the `user_id` from the request
+   - The `Gavrila - Hooks` workflow checks if the user ID is in the authorized list
+   - Authorized users: Request proceeds normally
+   - Unauthorized users: Receive message "Sorry, I don't know you well enough." and request is rejected
+
+3. **Finding Slack User IDs**:
+   - Click on a user's profile in Slack
+   - Click "More" → "Copy member ID"
+   - The ID format is typically `U` followed by alphanumeric characters (e.g., `U09LHK2NA3T`)
+
+### Additional Security Considerations
+- Store all API keys and tokens securely in GitHub Secrets and n8n credentials
+- Use HTTPS for all webhook endpoints
+- Verify Slack request signatures using the signing secret
+- Regularly audit authorized user list and remove inactive users
+- Monitor workflow execution logs for suspicious activity
+
 ## Slack Slash Commands Integration
 
 Configure Slack slash commands to trigger n8n workflows:
@@ -244,6 +282,10 @@ Configure Slack slash commands to trigger n8n workflows:
 1. Store your **Slack signing secret** securely
 2. Verify incoming requests in n8n using the signing secret
 3. Use n8n's built-in verification or custom verification logic
+4. **User Authorization**: Configure `authorized_slack_user_ids` in `Gavrila - Configure.json`:
+   - Add comma-separated Slack user IDs of authorized users (e.g., `U09LHK2NA3T,U12345678`)
+   - The webhook will reject requests from unauthorized users with message: "Sorry, I don't know you well enough."
+   - To find a user's Slack ID: Click on their profile → More → Copy member ID
 
 ### 5. Response Handling
 1. **Respond quickly** (within 3 seconds) to avoid Slack timeouts
@@ -260,6 +302,7 @@ Configure Slack slash commands to trigger n8n workflows:
 - **Response visibility**: Use `in_channel` (public) or `ephemeral` (private)
 - **Environment variables**: Add `SLACK_WEBHOOK_URL` and `SLACK_SIGNING_SECRET`
 - **Payload fields**: Expect `command`, `text`, `user_id`, `channel_id`, `response_url`
+- **User authorization**: The `user_id` field is used to verify authorized users against the configured list
 
 ## Usage and Testing
 
@@ -287,6 +330,7 @@ Configure Slack slash commands to trigger n8n workflows:
 
 ### End-to-End Functionality Checklist
 - [ ] Slack slash command triggers n8n webhook
+- [ ] User authorization check passes (user ID is in authorized list)
 - [ ] n8n sends immediate acknowledgment to Slack
 - [ ] OpenAI proofreads and clarifies task instructions
 - [ ] n8n triggers GitHub Actions workflow with task context
@@ -321,6 +365,10 @@ Configure Slack slash commands to trigger n8n workflows:
 - **Slash command not responding**: Check n8n webhook URL configuration in Slack app
 - **Verification failures**: Verify signing secret configuration in n8n
 - **Message not posting**: Ensure Slack bot has correct permissions and is in the channel
+- **"Sorry, I don't know you well enough" error**: User is not in the `authorized_slack_user_ids` list in `Gavrila - Configure.json`
+  - Verify the user's Slack ID is correctly added to the configuration
+  - Ensure IDs are comma-separated without spaces (or with consistent spacing)
+  - Check that the `Gavrila - Configure` workflow is properly connected to `Gavrila - Hooks`
 
 ### Helpful Resources
 - [Augment Code Documentation](https://docs.augmentcode.com/)
