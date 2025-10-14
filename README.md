@@ -1,6 +1,36 @@
 # Gavrila AI - Automated Coding Agent
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-Enabled-blue.svg)](https://github.com/features/actions)
+[![n8n](https://img.shields.io/badge/n8n-Workflow%20Automation-orange.svg)](https://n8n.io/)
+[![Augment Code](https://img.shields.io/badge/Augment%20Code-AI%20Agent-purple.svg)](https://augmentcode.com/)
+
 An intelligent automation system that integrates n8n workflows with GitHub Actions to create an AI-powered coding agent. Gavrila AI can receive tasks through Slack, process them using AI models, and execute automated coding workflows on GitHub repositories.
+
+**🚀 Key Features:**
+- 💬 **Slack Integration** - Send coding tasks via slash commands
+- 🤖 **AI-Powered** - Uses Augment Code (Claude Sonnet 4) for intelligent code generation
+- 🔄 **Automated Workflows** - Seamless integration between Slack, n8n, and GitHub Actions
+- 🔒 **Secure** - Built-in user authorization and secure token management
+- 📝 **Task Management** - Supports GitHub Issues and Linear integration
+- 🌐 **Self-Hosted** - Complete control over your automation infrastructure
+
+## Table of Contents
+
+- [⚠️ Warning](#️-warning)
+- [Technologies Used](#technologies-used)
+- [Quick Start](#quick-start)
+- [Prerequisites and Required Variables](#prerequisites-and-required-variables)
+- [Installation and Setup Steps](#installation-and-setup-steps)
+- [How It Works](#how-it-works)
+- [Setting up n8n Credentials](#setting-up-n8n-credentials)
+- [Required API Key Permissions / Scopes](#required-api-key-permissions--scopes)
+- [GitHub Actions Workflow](#github-actions-workflow)
+- [Security and Access Control](#security-and-access-control)
+- [Slack Slash Commands Integration](#slack-slash-commands-integration)
+- [Usage and Testing](#usage-and-testing)
+- [Troubleshooting and Links](#troubleshooting-and-links)
+- [Contributing, License, and Contact](#contributing-license-and-contact)
 
 ## ⚠️ Warning
 
@@ -12,9 +42,44 @@ An intelligent automation system that integrates n8n workflows with GitHub Actio
 
 - **n8n** - Workflow automation platform (self-hosted on [Hostinger N8N VPC](https://www.hostinger.com/self-hosted-n8n))
 - **GitHub Actions** - CI/CD automation and code execution
-- **Augment Code (Auggie)** - AI-powered coding agent (Claude Sonnet 4.5 based)
+- **Augment Code (Auggie)** - AI-powered coding agent (Claude Sonnet 4 based)
 - **Slack API** - Communication and task management
 - **OpenAI/GPT Models** - AI-powered task processing and proofreading
+
+## Quick Start
+
+**TL;DR**: Get Gavrila AI running in 5 steps:
+
+1. **Clone the repository**: `git clone https://github.com/AndreyMav/gavrila-ai.git`
+2. **Get your Augment token**: Sign up at [Augment Code](https://augmentcode.com) and get your session token
+3. **Add GitHub secret**: Go to your repo Settings > Secrets > Actions, add `AUGMENT_TOKEN`
+4. **Deploy n8n**: Use Docker or [Hostinger VPC](https://www.hostinger.com/self-hosted-n8n)
+5. **Import workflows**: Upload the JSON files from `n8n/` directory to your n8n instance
+
+**Ready to test?** Send `/gavrila Create a simple test file` in Slack and watch the magic happen! ✨
+
+> **Need more details?** Continue reading for comprehensive setup instructions.
+
+## Project Structure
+
+```
+gavrila-ai/
+├── .github/workflows/
+│   └── auggie-task.yml          # Main GitHub Actions workflow
+├── n8n/                         # n8n workflow definitions
+│   ├── Gavrila - Ask.json       # AI task processing
+│   ├── Gavrila - Configure.json # Configuration settings
+│   ├── Gavrila - Hooks.json     # Slack webhook handler
+│   ├── Gavrila - Respond.json   # Response handling
+│   └── Gavrila - Task Ops.json  # Task operations
+├── scripts/                     # Utility scripts
+│   ├── hooks/                   # Git hooks
+│   ├── install-hooks.sh         # Hook installation
+│   └── strip-n8n-pindata.sh     # Clean n8n test data
+├── DEVELOPMENT.md               # Development setup guide
+├── LICENSE                      # MIT License
+└── README.md                    # This file
+```
 
 ## Prerequisites and Required Variables
 
@@ -101,7 +166,7 @@ docker run -it --rm \
    - `Gavrila - Hooks.json` - Main webhook handler for Slack commands
    - `Gavrila - Ask.json` - AI task processing and GitHub Actions orchestration
    - `Gavrila - Configure.json` - Repository configuration (update with your values)
-   - `Gavrila - Ensure Task.json` - Task validation and creation
+   - `Gavrila - Task Ops.json` - Task validation and creation
    - `Gavrila - Respond.json` - Response handling back to Slack
 3. **Important**: Update the configuration in `Gavrila - Configure.json`:
    - `repository_url` - Set to your GitHub repository URL
@@ -321,18 +386,42 @@ Configure Slack slash commands to trigger n8n workflows:
 ### Sample Test Cases
 
 #### Basic Slack Command
-1. **Send Slack command**: `/gavrila Create a simple test task`
-2. **Verify n8n processing**: Check n8n execution logs for workflow execution
-3. **Check GitHub**: Confirm GitHub Actions workflow triggered in Actions tab
-4. **Monitor progress**: Watch the workflow execution in real-time
-5. **Validate response**: Ensure Slack receives completion notification with summary
+```
+/gavrila Create a simple test task
+```
+**Expected flow:**
+1. **Slack acknowledgment**: "Processing your request..."
+2. **n8n processing**: Check execution logs for workflow execution
+3. **GitHub Actions**: Workflow triggered in Actions tab
+4. **Branch creation**: New branch like `auggie-task-20241014-143022`
+5. **AI execution**: Augment agent processes the task
+6. **Completion**: Slack notification with summary and links
 
 #### With GitHub Issue
-1. **Create GitHub issue**: Create an issue in your repository (e.g., `#123`)
-2. **Send Slack command**: `/gavrila #123 Implement the feature as described`
-3. **Verify workflow**: Check that task details are fetched from GitHub
-4. **Check branch**: Verify branch name is created appropriately
-5. **Validate completion**: Ensure GitHub issue is referenced in commit
+```
+/gavrila #123 Implement the feature as described
+```
+**Expected flow:**
+1. **Issue parsing**: Task details fetched from GitHub issue #123
+2. **Branch naming**: Branch like `GAV-123-implement-feature`
+3. **Context inclusion**: Issue description and comments included
+4. **Commit reference**: Commit message references the issue
+5. **Status update**: Issue may be updated with progress
+
+#### Advanced Examples
+```bash
+# Bug fix with specific instructions
+/gavrila Fix the login bug in auth.py - ensure proper error handling
+
+# Feature implementation
+/gavrila Add user profile page with avatar upload functionality
+
+# Code review and optimization
+/gavrila Review and optimize the database queries in user service
+
+# Documentation task
+/gavrila Update the API documentation for the new endpoints
+```
 
 ### End-to-End Functionality Checklist
 - [ ] Slack slash command triggers n8n webhook
