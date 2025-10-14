@@ -1,0 +1,440 @@
+{
+  "name": "Gavrila - Ensure Task",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Ensure Task').item.json.task_system || $('Configure').item.json.default_task_system }}",
+                    "rightValue": "github",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6a25400c-120d-4153-9fcb-58e49b421009"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "github"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        64,
+        -48
+      ],
+      "id": "7bc1cda1-5c4a-41d1-9b56-088e1b56ac75",
+      "name": "Choose Task System"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "435061ab-86e9-4997-8b4c-95f231d62bc8",
+              "leftValue": "={{ $('Ensure Task').item.json.task_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        -48
+      ],
+      "id": "f74e063e-c80c-417a-91e4-66661100bdfd",
+      "name": "If task provided"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "task_system"
+            },
+            {
+              "name": "task_id"
+            },
+            {
+              "name": "summary"
+            },
+            {
+              "name": "instructions"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -672,
+        -48
+      ],
+      "id": "1ed7ee5b-a1d3-47d6-880e-1b6284788a57",
+      "name": "Ensure Task"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "issueNumber": "={{ Number($('Ensure Task').item.json.task_id.match(/\\d+$/)[0]) }}\n"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        -144
+      ],
+      "id": "08904a98-9278-4e73-a90b-85a030b939b9",
+      "name": "Get an issue",
+      "webhookId": "6643a26a-d9ce-4562-adf7-b8982c40bf82",
+      "credentials": {
+        "githubApi": {
+          "id": "GaRxZmasFeiFFbDt",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.comments_url }}?per_page=1",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "pagination": {
+            "pagination": {
+              "paginationMode": "responseContainsNextURL",
+              "nextURL": "={{ $response.headers.link.match(/<([^>]+)>;\\s*rel=\"next\"/)?.[1] }}",
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{   (() => {     const link = $response?.headers?.link || '';     const hasNext = /<([^>]+)>\\s*;\\s*rel=\"?next\"?/i.test(link);     return !hasNext;   })() }}",
+              "limitPagesFetched": true,
+              "maxRequests": 2
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        -144
+      ],
+      "id": "2240c8eb-2635-4e29-bef4-ad12a7b8c4f5",
+      "name": "Get issue comments",
+      "credentials": {
+        "githubApi": {
+          "id": "GaRxZmasFeiFFbDt",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "title": "={{ $('Ensure Task').item.json.summary }}",
+        "body": "={{ $('Ensure Task').item.json.instructions }}",
+        "labels": [],
+        "assignees": []
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        64
+      ],
+      "id": "eb3b0dc2-c827-4d8f-a5b5-0db620cad43b",
+      "name": "Create an issue",
+      "webhookId": "f32c3377-8ece-4dc0-80de-c31016b370b0",
+      "credentials": {
+        "githubApi": {
+          "id": "GaRxZmasFeiFFbDt",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: multiple items, each item.json is an array of comments (a page)\n// Output: single item with { comments: { comment: [...] } } for XML node\n\nfunction pick(v, ...paths) {\n  for (const p of paths) {\n    const segs = p.split('.');\n    let cur = v;\n    for (const s of segs) cur = cur?.[s];\n    if (cur !== undefined) return cur;\n  }\n  return undefined;\n}\n\nconst all = [];\n\n// Handle common shapes across n8n versions:\n// - item.json is an array (page)\n// - item.json.body is an array (when \"Return full response\" is on)\nfor (const it of items) {\n  const page =\n    Array.isArray(it.json) ? it.json :\n    (Array.isArray(it.json?.body) ? it.json.body : []);\n  all.push(...page);\n}\n\n// Optional: sort by created_at\nall.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));\n\n// Map to a clean shape that XML node can turn into <comments><comment>...</comment></comments>\nconst merged = all.map(c => ({\n      id: c.id,\n      url: pick(c, 'html_url', 'url') ?? null,\n      author: pick(c, 'user.login', 'author_login') ?? null,\n      author_id: pick(c, 'user.id', 'author_id') ?? null,\n      author_association: c.author_association ?? null,\n      created_at: c.created_at,\n      updated_at: c.updated_at,\n      body: c.body,\n      reactions_total: pick(c, 'reactions.total_count', 'reactions_total') ?? 0,\n    }));\n\nreturn {\n  task_id: $('Get an issue').first().json.html_url.match(/\\/issues\\/(\\d+)/)[1],\n  url: $('Get an issue').first().json.html_url,\n  title: $('Get an issue').first().json.title,\n  author: $('Get an issue').first().json.user.login,\n  state: $('Get an issue').first().json.state,\n  instructions: $('Get an issue').first().json.body,\n  comments: merged\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        -144
+      ],
+      "id": "48f62fab-f2a1-4c59-81bd-8bc8248508bb",
+      "name": "Normalize existing task"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "217e01b2-950c-45dc-be51-a1e975fcf44f",
+              "name": "task_id",
+              "value": "={{ $json.html_url.match(/\\/issues\\/(\\d+)/)[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "e3928f0a-7c98-41c4-9b02-690bd617ef01",
+              "name": "url",
+              "value": "={{ $json.html_url }}",
+              "type": "string"
+            },
+            {
+              "id": "7b606685-d468-4383-983b-7901ae46d47a",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "321f46c7-2ea6-4edb-bbe2-70286e91908c",
+              "name": "author",
+              "value": "={{ $json.user.login }}",
+              "type": "string"
+            },
+            {
+              "id": "681cae0f-2065-4fcb-87df-590e36ffd2b5",
+              "name": "state",
+              "value": "={{ $json.state }}",
+              "type": "string"
+            },
+            {
+              "id": "80bfdc3b-dd49-4d6c-9971-55fdbb83061b",
+              "name": "instructions",
+              "value": "={{ $json.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        64
+      ],
+      "id": "336ea04c-c980-4da6-94a3-a80107e4a3c4",
+      "name": "Prepare created task"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -32
+      ],
+      "id": "671c7379-01a7-4074-ade1-cfbeea0c47b4",
+      "name": "Success"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "wuIS4lmxJ8DhDmoW",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/wuIS4lmxJ8DhDmoW",
+          "cachedResultName": "Gavrila - Configure"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        -48
+      ],
+      "id": "9880ecd4-d782-43ad-b868-ca8e0c7a856f",
+      "name": "Configure"
+    }
+  ],
+  "connections": {
+    "If task provided": {
+      "main": [
+        [
+          {
+            "node": "Get an issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose Task System": {
+      "main": [
+        [
+          {
+            "node": "If task provided",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Task": {
+      "main": [
+        [
+          {
+            "node": "Configure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get an issue": {
+      "main": [
+        [
+          {
+            "node": "Get issue comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get issue comments": {
+      "main": [
+        [
+          {
+            "node": "Normalize existing task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize existing task": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an issue": {
+      "main": [
+        [
+          {
+            "node": "Prepare created task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare created task": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure": {
+      "main": [
+        [
+          {
+            "node": "Choose Task System",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3cbc21d4-b864-4f9e-9639-1dd75aaac1e8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
+  },
+  "id": "fYWsAFNMx99n8Uel",
+  "tags": []
+}

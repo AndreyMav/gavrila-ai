@@ -1,0 +1,231 @@
+{
+  "name": "Gavrila - Hooks",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "38f11fd2-0538-4f3a-8e98-a253b8557737",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -800,
+        128
+      ],
+      "id": "89f177bc-9e0b-4cad-a457-2f6c9401988b",
+      "name": "Webhook",
+      "webhookId": "38f11fd2-0538-4f3a-8e98-a253b8557737"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "10fb81ef-65f4-45e0-98e5-fae5373b40e9",
+              "name": "request",
+              "value": "={{ $('Webhook').item.json.body.text }}",
+              "type": "string"
+            },
+            {
+              "id": "f55cfc70-a4d2-48d4-93a3-3190705317c0",
+              "name": "user_id",
+              "value": "={{ $('Webhook').item.json.body.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "5b3f76e4-6b67-4983-8f84-9712f28ddafa",
+              "name": "command",
+              "value": "={{ $('Webhook').item.json.body.command }}",
+              "type": "string"
+            },
+            {
+              "id": "2a1d946e-fb5c-469c-baea-37b01bb59eef",
+              "name": "channel_id",
+              "value": "={{ $('Webhook').item.json.body.channel_id }}",
+              "type": "string"
+            },
+            {
+              "id": "109f0811-5bc5-4cac-a5c8-d8fe2086ca3f",
+              "name": "message_id",
+              "value": "={{ $json.message.ts }}",
+              "type": "string"
+            },
+            {
+              "id": "51cb4f56-9925-4631-9373-ce499d1cd65b",
+              "name": "source",
+              "value": "slack",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        112
+      ],
+      "id": "89d8a6a2-b820-4d23-8586-c4b2db243347",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.body.channel_id }}",
+          "mode": "id"
+        },
+        "text": "=<@{{ $json.body.user_id }}> asked:\n\n{{ $json.body.text }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -592,
+        128
+      ],
+      "id": "9f5e01f3-f9e0-490b-9cfe-9eb8725991be",
+      "name": "Send a message",
+      "webhookId": "ab5e2961-2ce5-41bf-b71c-7d4d44c5aa6e",
+      "credentials": {
+        "slackApi": {
+          "id": "TxhFLGT2ibagUHiU",
+          "name": "Slack account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -384,
+        32
+      ],
+      "id": "6fce9b89-0f35-45c7-a5fb-dbb061c7c874",
+      "name": "Respond to Webhook on success"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.error?.includes('not_in_channel') \n  ? 'Gavrila is not in the channel' \n  : 'Gavrila is drunk (internal error)' }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -176,
+        304
+      ],
+      "id": "3b099654-0a49-462b-9275-d42a904cb473",
+      "name": "Report error"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "xYwYVnVI1XAR2Xub",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xYwYVnVI1XAR2Xub",
+          "cachedResultName": "Gavrila - Task"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        112
+      ],
+      "id": "600b778f-4152-408d-90de-94d56621c40d",
+      "name": "Ask Gavrila"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Ask Gavrila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook on success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Report error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook on success": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "edf28ecc-801d-4e6f-89ba-6230fc6ecb53",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
+  },
+  "id": "9goRVaBBIXidt72m",
+  "tags": []
+}

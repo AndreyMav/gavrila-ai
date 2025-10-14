@@ -1,0 +1,365 @@
+name: Gavrila Coding Agent Task
+
+on:
+  workflow_dispatch:
+    inputs:
+      taskJson:
+        description: "Task context in form of JSON string"
+        required: false
+        default: ""
+      branchName:
+        description: "Optional branch to use. Will be created if not found. If empty, we derive from task context or use a timestamp."
+        required: false
+        default: ""
+      resumeUrl:
+        description: "n8n webhook URL to report status"
+        required: true
+      instructions:
+        description: "Instructions for the agent"
+        required: true
+
+jobs:
+  auggie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write        # Allows pushing commits
+      issues: read           # Allows reading issues and comments
+      pull-requests: read    # Allows reading pull requests and comments
+
+    env:
+      # Git configuration constants
+      GIT_USER_NAME: "github-actions[bot]"
+      GIT_USER_EMAIL: "github-actions[bot]@users.noreply.github.com"
+      # Workflow constants
+      DEFAULT_BASE_BRANCH: "main"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Save taskJson to file
+        run: |
+          # Save taskJson to a temporary file to avoid command-line injection issues
+          cat > /tmp/task.json <<'EOF'
+          ${{ github.event.inputs.taskJson }}
+          EOF
+
+      - name: Parse task context
+        id: task_context
+        run: |
+          # Expected JSON format (reference for AI):
+          # {
+          #   "task_id": "123" or "#123",
+          #   "task_system": "github" or "linear",
+          #   "url": "https://github.com/owner/repo/issues/123",
+          #   "title": "Issue or task title",
+          #   "author": "username",
+          #   "state": "open" or "closed",
+          #   "instructions": "Issue body or task description",
+          #   "comments": [
+          #     {
+          #       "id": 123456,
+          #       "url": "https://github.com/...",
+          #       "author": "username",
+          #       "author_id": 12345,
+          #       "author_association": "OWNER",
+          #       "created_at": "2024-01-01T00:00:00Z",
+          #       "updated_at": "2024-01-01T00:00:00Z",
+          #       "body": "Comment text",
+          #       "reactions_total": 0
+          #     }
+          #   ]
+          # }
+
+          echo "=== Task JSON Parsing Debug ==="
+
+          # Check if file exists and show its size
+          if [ -f /tmp/task.json ]; then
+            FILE_SIZE=$(stat -c%s /tmp/task.json)
+            echo "✓ File exists: /tmp/task.json (size: $FILE_SIZE bytes)"
+          else
+            echo "✗ File does not exist: /tmp/task.json"
+          fi
+
+          # Show raw content
+          echo "--- Raw file content ---"
+          cat /tmp/task.json || echo "(failed to read file)"
+          echo "--- End raw content ---"
+
+          # Validate JSON syntax
+          echo "--- JSON validation ---"
+          if jq empty /tmp/task.json 2>&1; then
+            echo "✓ Valid JSON syntax"
+          else
+            echo "✗ Invalid JSON syntax"
+          fi
+
+          # Parse taskJson from file if it exists and is not empty
+          if [ -s /tmp/task.json ]; then
+            echo "--- Parsing JSON fields ---"
+
+            TASK_SYSTEM=$(jq -r '.task_system // empty' /tmp/task.json)
+            echo "  task_system: '$TASK_SYSTEM'"
+
+            TASK_ID=$(jq -r '.task_id // empty' /tmp/task.json)
+            echo "  task_id: '$TASK_ID'"
+
+            TASK_TITLE=$(jq -r '.title // empty' /tmp/task.json)
+            echo "  task_title: '$TASK_TITLE'"
+
+            TASK_URL=$(jq -r '.url // empty' /tmp/task.json)
+            echo "  task_url: '$TASK_URL'"
+
+            TASK_AUTHOR=$(jq -r '.author // empty' /tmp/task.json)
+            echo "  task_author: '$TASK_AUTHOR'"
+
+            TASK_STATE=$(jq -r '.state // empty' /tmp/task.json)
+            echo "  task_state: '$TASK_STATE'"
+
+            TASK_INSTRUCTIONS=$(jq -r '.instructions // empty' /tmp/task.json)
+            echo "  task_instructions: '${TASK_INSTRUCTIONS:0:100}...'" # Show first 100 chars
+
+            COMMENTS_COUNT=$(jq -r '.comments | length // 0' /tmp/task.json)
+            echo "  comments_count: '$COMMENTS_COUNT'"
+
+            echo "task_system=$TASK_SYSTEM" >> $GITHUB_OUTPUT
+            echo "task_id=$TASK_ID" >> $GITHUB_OUTPUT
+            echo "task_title=$TASK_TITLE" >> $GITHUB_OUTPUT
+            echo "task_url=$TASK_URL" >> $GITHUB_OUTPUT
+            echo "task_author=$TASK_AUTHOR" >> $GITHUB_OUTPUT
+            echo "task_state=$TASK_STATE" >> $GITHUB_OUTPUT
+            echo "comments_count=$COMMENTS_COUNT" >> $GITHUB_OUTPUT
+
+            # Save task instructions to a file to avoid issues with multiline strings
+            jq -r '.instructions // empty' /tmp/task.json > /tmp/task-instructions.txt
+          else
+            echo "⚠ File is empty or does not exist, skipping JSON parsing"
+          fi
+
+          echo "=== End Task JSON Parsing Debug ==="
+
+      - name: Derive or use branch name
+        id: branch
+        run: |
+          # Debug: Show task context values
+          echo "=== Branch Naming Debug Info ==="
+          echo "task_system: '${{ steps.task_context.outputs.task_system }}'"
+          echo "task_id: '${{ steps.task_context.outputs.task_id }}'"
+          echo "task_title: '${{ steps.task_context.outputs.task_title }}'"
+          echo "branchName input: '${{ github.event.inputs.branchName }}'"
+          echo "================================"
+
+          # Use provided branch name if available
+          if [ -n "${{ github.event.inputs.branchName }}" ]; then
+            BR="${{ github.event.inputs.branchName }}"
+            echo "✓ Using provided branch name: $BR"
+          # Use task_id and title if available
+          elif [ -n "${{ steps.task_context.outputs.task_id }}" ] && [ -n "${{ steps.task_context.outputs.task_title }}" ]; then
+            TASK_ID="${{ steps.task_context.outputs.task_id }}"
+            # Remove # prefix if present (for GitHub issues)
+            TASK_ID="${TASK_ID#\#}"
+            # Create slug from title
+            TITLE_SLUG=$(echo "${{ steps.task_context.outputs.task_title }}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | cut -c1-40)
+            BR="${TASK_ID}-${TITLE_SLUG}"
+            echo "✓ Using task-based branch: $BR"
+          # Fallback to timestamp
+          else
+            BR="auggie-task-$(date +%Y%m%d-%H%M%S)"
+            echo "⚠ Using timestamp fallback branch: $BR"
+          fi
+
+          echo "branch=$BR" >> $GITHUB_OUTPUT
+
+          # Checkout or create branch
+          git fetch origin
+          if git rev-parse --verify "origin/$BR" >/dev/null 2>&1; then
+            echo "Branch exists remotely, checking out"
+            git checkout -B "$BR" "origin/$BR"
+          else
+            echo "Creating new branch"
+            git checkout -b "$BR"
+          fi
+
+      - name: Configure git user
+        run: |
+          git config user.name "${{ env.GIT_USER_NAME }}"
+          git config user.email "${{ env.GIT_USER_EMAIL }}"
+
+      - name: Create instruction file
+        run: |
+          cat > /tmp/auggie-instruction.txt <<'EOF'
+          You are an autonomous coding agent running in CI on GitHub Actions. You are given a task to work on. It may be an ad-hoc query or a task.
+          Repository context: this is a real codebase. You can read and edit files.
+
+          Instructions:
+          - The task may be just a query against the codebase. Determine if it's a query or a task and adjust your plan accordingly. Answer it as best you can without modifying the code, running tests or updating docs.
+          - Keep changes minimal and coherent. Avoid placeholder code.
+          - Update tests or add new ones as needed.
+          - Update docs or READMEs if behavior or setup changes.
+          - Do not do destructive refactors beyond the scope of the task.
+          - Generate a summary of what you did in a markdown format. This summary is going to go to the task comments, so keep it concise. Put it in the .auggie-summary file in the current folder.
+          - Generate a commit message for your changes following Git best practices:
+            * First line (subject): 50-72 characters max, imperative mood (e.g., "Add feature" not "Added feature")
+            * Second line: blank
+            * Body (optional): Explain what and why (not how), wrapped at 72 characters per line
+            * Include context like related issue numbers, breaking changes, or important details
+            * Put the complete commit message in .auggie-commit-message file in the repository root
+          - DO NOT commit or push any changes. The workflow will handle committing and pushing.
+
+          EOF
+
+          # Add current iteration instructions (primary directive)
+          echo "" >> /tmp/auggie-instruction.txt
+          echo "=== Current Task Instructions ===" >> /tmp/auggie-instruction.txt
+          cat >> /tmp/auggie-instruction.txt <<'INSTRUCTIONS_EOF'
+          ${{ github.event.inputs.instructions }}
+          INSTRUCTIONS_EOF
+          echo "" >> /tmp/auggie-instruction.txt
+
+          # Add background task context if available
+          if [ -s /tmp/task.json ]; then
+            echo "" >> /tmp/auggie-instruction.txt
+            echo "=== Background: Original Task Context ===" >> /tmp/auggie-instruction.txt
+            echo "The following is background information about the original task. Your primary directive is the 'Current Task Instructions' above." >> /tmp/auggie-instruction.txt
+            echo "" >> /tmp/auggie-instruction.txt
+            echo "Task System: ${{ steps.task_context.outputs.task_system }}" >> /tmp/auggie-instruction.txt
+            echo "Task ID: ${{ steps.task_context.outputs.task_id }}" >> /tmp/auggie-instruction.txt
+            echo "Title: ${{ steps.task_context.outputs.task_title }}" >> /tmp/auggie-instruction.txt
+            echo "URL: ${{ steps.task_context.outputs.task_url }}" >> /tmp/auggie-instruction.txt
+            echo "Author: ${{ steps.task_context.outputs.task_author }}" >> /tmp/auggie-instruction.txt
+            echo "State: ${{ steps.task_context.outputs.task_state }}" >> /tmp/auggie-instruction.txt
+            echo "Comments: ${{ steps.task_context.outputs.comments_count }}" >> /tmp/auggie-instruction.txt
+            echo "" >> /tmp/auggie-instruction.txt
+
+            # Add original task description
+            if [ -s /tmp/task-instructions.txt ]; then
+              echo "Original Task Description:" >> /tmp/auggie-instruction.txt
+              cat /tmp/task-instructions.txt >> /tmp/auggie-instruction.txt
+              echo "" >> /tmp/auggie-instruction.txt
+            fi
+
+            # Add comments if available
+            if [ "${{ steps.task_context.outputs.comments_count }}" != "0" ]; then
+              echo "" >> /tmp/auggie-instruction.txt
+              echo "Task Comments (for context):" >> /tmp/auggie-instruction.txt
+              jq -r '.comments[] | "---\nAuthor: \(.author) (\(.author_association))\nDate: \(.created_at)\n\n\(.body)\n"' /tmp/task.json >> /tmp/auggie-instruction.txt
+              echo "" >> /tmp/auggie-instruction.txt
+            fi
+          fi
+
+      - name: Run Augment Agent
+        id:  auggie
+        uses: augmentcode/augment-agent@v0
+        with:
+          augment_session_auth: ${{ secrets.AUGMENT_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          instruction_file: /tmp/auggie-instruction.txt
+
+      - name: Save summary for reporting
+        id: save_summary
+        run: |
+          # Copy summary and commit message to a safe location for later use
+          if [ -f .auggie-summary ]; then
+            cp .auggie-summary /tmp/auggie-summary-for-report.txt
+            echo "has_summary=true" >> $GITHUB_OUTPUT
+          else
+            echo "" > /tmp/auggie-summary-for-report.txt
+            echo "has_summary=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Copy commit message to /tmp for use in commit step
+          if [ -f .auggie-commit-message ]; then
+            cp .auggie-commit-message /tmp/.auggie-commit-message
+          fi
+
+      - name: Commit changes if any
+        id: commit
+        run: |
+          # Remove the summary and commit message files before committing
+          rm -f .auggie-summary .auggie-commit-message
+
+          # Show git status for debugging
+          echo "=== Git Status ==="
+          git status
+          echo "=== Unstaged changes ==="
+          git diff --name-only || true
+          echo "=== Untracked files ==="
+          git ls-files --others --exclude-standard || true
+
+          # Stage all changes
+          git add -A
+
+          echo "=== Staged changes ==="
+          git diff --cached --name-only || true
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            # Use Auggie's commit message if available, otherwise create one based on context
+            if [ -f /tmp/.auggie-commit-message ] && [ -s /tmp/.auggie-commit-message ]; then
+              COMMIT_MSG=$(cat /tmp/.auggie-commit-message)
+              echo "✓ Using Auggie-generated commit message"
+            elif [ "${{ steps.task_context.outputs.task_system }}" = "github" ] && [ -n "${{ steps.task_context.outputs.task_id }}" ]; then
+              COMMIT_MSG="Fix #${{ steps.task_context.outputs.task_id }}: ${{ steps.task_context.outputs.task_title }}"
+              echo "⚠ Using fallback GitHub commit message"
+            elif [ "${{ steps.task_context.outputs.task_system }}" = "linear" ] && [ -n "${{ steps.task_context.outputs.task_id }}" ]; then
+              COMMIT_MSG="${{ steps.task_context.outputs.task_id }}: ${{ steps.task_context.outputs.task_title }}"
+              echo "⚠ Using fallback Linear commit message"
+            else
+              COMMIT_MSG="Gavrila task: automated changes"
+              echo "⚠ Using fallback generic commit message"
+            fi
+
+            echo "Commit message: $COMMIT_MSG"
+            git commit -m "$COMMIT_MSG"
+            git push --set-upstream origin "${{ steps.branch.outputs.branch }}"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report back to n8n
+        if: ${{ always() }}
+        run: |
+          STATUS="${{ job.status }}"
+          BRANCH="${{ steps.branch.outputs.branch }}"
+          COMMIT_SHA="${{ steps.commit.outputs.commit_sha }}"
+
+          # Construct workflow run URL
+          WORKFLOW_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          # Construct commit URL if commit exists
+          if [ -n "$COMMIT_SHA" ]; then
+            COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/$COMMIT_SHA"
+          else
+            COMMIT_URL=""
+          fi
+
+          # Build JSON payload using jq to ensure proper escaping
+          # Use --rawfile to read summary directly from file, avoiding any shell interpolation
+          jq -n \
+            --arg status "$STATUS" \
+            --arg repo "${{ github.repository }}" \
+            --arg branch "$BRANCH" \
+            --arg commit "$COMMIT_SHA" \
+            --arg commit_url "$COMMIT_URL" \
+            --arg workflow_run_url "$WORKFLOW_RUN_URL" \
+            --rawfile summary /tmp/auggie-summary-for-report.txt \
+            '{
+              status: $status,
+              repo: $repo,
+              branch: $branch,
+              commit: $commit,
+              commit_url: $commit_url,
+              workflow_run_url: $workflow_run_url,
+              summary: $summary
+            }' | curl -sS -X POST "${{ github.event.inputs.resumeUrl }}" \
+              --max-time 10 \
+              -H "Content-Type: application/json" \
+              -d @-

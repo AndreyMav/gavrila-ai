@@ -1,0 +1,146 @@
+{
+  "name": "Gavrila - Respond",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.source }}",
+                    "rightValue": "slack",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9fe06dfd-7a96-42a5-89ad-9ea744148851"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "slack"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "db5b3c6d-ce8e-42fa-aec3-19b2e882b6f6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Entry Point').item.json.channel_id }}",
+          "mode": "id"
+        },
+        "text": "={{ $('Entry Point').item.json.message }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('Entry Point').item.json.message_id }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "cfc52950-9f43-43d2-9be8-19eedc51a239",
+      "name": "Send a message",
+      "webhookId": "be056a28-bfee-4dd6-9bf8-743a683ed004",
+      "credentials": {
+        "slackApi": {
+          "id": "TxhFLGT2ibagUHiU",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "source"
+            },
+            {
+              "name": "channel_id"
+            },
+            {
+              "name": "message_id"
+            },
+            {
+              "name": "user_id"
+            },
+            {
+              "name": "message"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ba28a510-4119-40e1-9b16-383cd887d3be",
+      "name": "Entry Point"
+    }
+  ],
+  "connections": {
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry Point": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0087511f-a1c7-4d6d-9aeb-8f740c79acb9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
+  },
+  "id": "6fLQwiMjG3EKHoVG",
+  "tags": []
+}

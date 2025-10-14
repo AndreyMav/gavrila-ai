@@ -1,0 +1,530 @@
+{
+  "name": "Gavrila - Ask",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are proofreading and structuring a task description for another AI agent.\n\nOnly the text inside \"Job Description\" is the source material.\nDo NOT reference or summarize this prompt itself — only the Job Description content.\n\n---\n\n## Goal\nReturn a clean, structured summary of the task in JSON.\n\n- Detect if it refers to an **existing task** (with a recognizable ID)\n  or a **new task** (no ID found).\n- Proofread lightly (fix grammar/clarity, but keep the meaning).\n- Produce a concise summary and clear instructions.\n- **Do not overthink or add interpretation beyond what is stated.**\n\n---\n\n## Task Type Rules\n\n**Existing Task**\n- Detect a task ID matching a supported system format.\n- Keep the description, but do **not** repeat or mention the ID inside it.\n\n**New Task**\n- If the first line is followed by a blank line → treat it as the task name.\n- Otherwise, create a short summary from the text itself.\n- Everything else after the summary goes into \"instructions.\"\n\n---\n\n## Supported Systems\n- **Linear.app (tag: \"linear\")** — ID format: `ABC-123` (3–5 uppercase letters, hyphen, digits)\n- **GitHub issues (tag: \"github\")**\n  - `#123` (same-repo)\n  - `owner/repo#456` (cross-repo)\n  - **Bare number references with context keywords** — Detect patterns like:\n    - `task 1`, `issue 45`, `ticket 3`\n    - `implement task 1`, `fix issue 45`, `close ticket 3`\n    - `resolve 1`, `work on 45`, `handle 3`\n    - Keywords: task, issue, ticket, implement, fix, close, resolve, work on, handle\n    - **Normalize to same-repo format**: \"task 1\" → \"#1\"\n\n---\n\n## Output JSON\n\n{\n  \"task_id\": \"<task ID or empty>\",\n  \"task_system\": \"<'linear' | 'github' | ''>\",\n  \"summary\": \"<short task title>\",\n  \"instructions\": \"<cleaned, proofread description or steps>\"\n}\n\n---\n\n❌ Never mention \"Job Description\" or these instructions.\n✅ Only use the text below to build your output.\n\n---\n\n# Job Description\n{{ $('AITask Command Received').item.json.request }}\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2080,
+        208
+      ],
+      "id": "d7419fba-aaa0-48ac-85ce-59305f171af4",
+      "name": "Proofread task",
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "b3ctmsxoRYPFFcMa",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "workflow",
+        "operation": "dispatchAndWait",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "workflowId": {
+          "__rl": true,
+          "value": "auggie-task.yml",
+          "mode": "filename"
+        },
+        "ref": {
+          "__rl": true,
+          "value": "main",
+          "mode": "list",
+          "cachedResultName": "main"
+        },
+        "inputs": "={\n    \"taskJson\": {{ JSON.stringify(JSON.stringify($json)) }},\n    \"instructions\": {{ JSON.stringify($('Full Context').item.json.instructions) ?? \"Implement task as described.\"}}\n}\n"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -992,
+        208
+      ],
+      "id": "016ba69b-b7a1-4e32-b8c6-e1024c90f6a7",
+      "name": "Run Agent",
+      "webhookId": "3154a9e9-b7f8-4596-9bec-cae2b91938fb",
+      "retryOnFail": true,
+      "credentials": {
+        "githubApi": {
+          "id": "GaRxZmasFeiFFbDt",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2528,
+        208
+      ],
+      "id": "391b609a-963b-4ffb-88f3-cf3294893c8e",
+      "name": "AITask Command Received"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b8d162c3-195a-4337-83dd-fe6dc2e82529",
+              "name": "task_id",
+              "value": "={{ $json.message.content.task_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c2c2606f-f21d-452d-93ef-723a5f99f623",
+              "name": "task_system",
+              "value": "={{ $json.message.content.task_system }}",
+              "type": "string"
+            },
+            {
+              "id": "419e775e-240f-40f5-a4bc-3b158f2074d3",
+              "name": "summary",
+              "value": "={{ $json.message.content.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "19638eba-0143-4a9e-af80-195684d25f9f",
+              "name": "instructions",
+              "value": "={{ $json.message.content.instructions }}",
+              "type": "string"
+            },
+            {
+              "id": "c4d0d8fd-915e-4a2f-ae1d-99c889a77d35",
+              "name": "user_id",
+              "value": "={{ $('AITask Command Received').item.json.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b35b7960-bdbc-40c4-b6be-86899e56503c",
+              "name": "command",
+              "value": "={{ $('AITask Command Received').item.json.command }}",
+              "type": "string"
+            },
+            {
+              "id": "4aa242be-9075-4008-b8e3-990a97931a39",
+              "name": "channel_id",
+              "value": "={{ $('AITask Command Received').item.json.channel_id }}",
+              "type": "string"
+            },
+            {
+              "id": "01a85de3-ef18-4ff5-8ef5-19b3303659c5",
+              "name": "message_id",
+              "value": "={{ $('AITask Command Received').item.json.message_id }}",
+              "type": "string"
+            },
+            {
+              "id": "dc2e6da8-5019-455b-98ce-717a8e8a0391",
+              "name": "source",
+              "value": "={{ $('AITask Command Received').item.json.source }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1728,
+        208
+      ],
+      "id": "831ba2bb-4d6e-4b81-8333-339732206c2b",
+      "name": "Full Context"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "wuIS4lmxJ8DhDmoW",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/wuIS4lmxJ8DhDmoW",
+          "cachedResultName": "Gavrila - Configure"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -2320,
+        208
+      ],
+      "id": "0d5bab78-bd6c-4308-9c9d-500a8e506c3b",
+      "name": "Configure"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6fLQwiMjG3EKHoVG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/6fLQwiMjG3EKHoVG",
+          "cachedResultName": "Gavrila - Respond"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "source": "={{ $json.source }}",
+            "message_id": "={{ $json.message_id }}",
+            "user_id": "={{ $json.user_id }}",
+            "message": "=Task ID: {{ $json.task_id }}\nSummary: {{ $json.summary }}\nInstructions:\n{{ $json.instructions }}",
+            "channel_id": "={{ $json.channel_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "channel_id",
+              "displayName": "channel_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1520,
+        208
+      ],
+      "id": "b83c855e-fa9f-424d-9327-4dff6b7f1ec9",
+      "name": "Report instructions as perceived"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fYWsAFNMx99n8Uel",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/fYWsAFNMx99n8Uel",
+          "cachedResultName": "Gavrila - Ensure Task"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "task_system": "={{ $('Full Context').item.json.task_system }}",
+            "task_id": "={{ $('Full Context').item.json.task_id }}",
+            "summary": "={{ $('Full Context').item.json.summary }}",
+            "instructions": "={{ $('Full Context').item.json.instructions }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "task_system",
+              "displayName": "task_system",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "task_id",
+              "displayName": "task_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "instructions",
+              "displayName": "instructions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1312,
+        208
+      ],
+      "id": "ed918038-ae2d-4321-9f80-d732bd65f43b",
+      "name": "Ensure there is a task",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6fLQwiMjG3EKHoVG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/6fLQwiMjG3EKHoVG",
+          "cachedResultName": "Gavrila - Respond"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "source": "={{ $('Full Context').item.json.source }}",
+            "message_id": "={{ $('Full Context').item.json.message_id }}",
+            "user_id": "={{ $('Full Context').item.json.user_id }}",
+            "message": "=*Status*: {{ $('Run Agent').item.json.status }}\n*Summary*:\n{{ $('Run Agent').item.json.summary }}\n{{ $('Run Agent').item.json.commit_url ? '\\n*Commit*: ' + $('Run Agent').item.json.commit_url : '' }}\n{{ $('Run Agent').item.json.workflow_run_url ? '*Workflow Run*: ' + $('Run Agent').item.json.workflow_run_url : '' }}\n---------------------",
+            "channel_id": "={{ $('Full Context').item.json.channel_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "channel_id",
+              "displayName": "channel_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -720,
+        208
+      ],
+      "id": "bfe45645-9f7a-4f97-bdba-e921b0b77296",
+      "name": "Report Summary"
+    }
+  ],
+  "connections": {
+    "Proofread task": {
+      "main": [
+        [
+          {
+            "node": "Full Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Agent": {
+      "main": [
+        [
+          {
+            "node": "Report Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AITask Command Received": {
+      "main": [
+        [
+          {
+            "node": "Configure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Full Context": {
+      "main": [
+        [
+          {
+            "node": "Report instructions as perceived",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure": {
+      "main": [
+        [
+          {
+            "node": "Proofread task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report instructions as perceived": {
+      "main": [
+        [
+          {
+            "node": "Ensure there is a task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure there is a task": {
+      "main": [
+        [
+          {
+            "node": "Run Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9e49f02d-9f1f-43f3-8378-b1f56746dfcf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
+  },
+  "id": "xYwYVnVI1XAR2Xub",
+  "tags": []
+}
