@@ -1,5 +1,5 @@
 {
-  "name": "Gavrila - Ensure Task",
+  "name": "Gavrila - Task Ops",
   "nodes": [
     {
       "parameters": {
@@ -15,7 +15,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('Ensure Task').item.json.task_system || $('Configure').item.json.default_task_system }}",
+                    "leftValue": "={{ $('Task Ops Entry').item.json.task_system || $('Configure').item.json.default_task_system }}",
                     "rightValue": "github",
                     "operator": {
                       "type": "string",
@@ -36,10 +36,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        64,
-        -48
+        320,
+        -352
       ],
-      "id": "7bc1cda1-5c4a-41d1-9b56-088e1b56ac75",
+      "id": "a72731e6-6b65-4169-9c10-bdd95c081bfd",
       "name": "Choose Task System"
     },
     {
@@ -54,7 +54,7 @@
           "conditions": [
             {
               "id": "435061ab-86e9-4997-8b4c-95f231d62bc8",
-              "leftValue": "={{ $('Ensure Task').item.json.task_id }}",
+              "leftValue": "={{ $('Task Ops Entry').item.json.task_id }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -70,39 +70,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        544,
-        -48
+        608,
+        -352
       ],
-      "id": "f74e063e-c80c-417a-91e4-66661100bdfd",
+      "id": "7b3735f2-15fb-431d-88a7-c6847f0b4e50",
       "name": "If task provided"
-    },
-    {
-      "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "task_system"
-            },
-            {
-              "name": "task_id"
-            },
-            {
-              "name": "summary"
-            },
-            {
-              "name": "instructions"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -672,
-        -48
-      ],
-      "id": "1ed7ee5b-a1d3-47d6-880e-1b6284788a57",
-      "name": "Ensure Task"
     },
     {
       "parameters": {
@@ -117,15 +89,15 @@
           "value": "={{ $('Configure').item.json.repository_url }}",
           "mode": "url"
         },
-        "issueNumber": "={{ Number($('Ensure Task').item.json.task_id.match(/\\d+$/)[0]) }}\n"
+        "issueNumber": "={{ Number($('Task Ops Entry').item.json.task_id.match(/\\d+$/)[0]) }}\n"
       },
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        832,
-        -144
+        1072,
+        -448
       ],
-      "id": "08904a98-9278-4e73-a90b-85a030b939b9",
+      "id": "682377af-3898-4d73-a47b-8ae007adf39d",
       "name": "Get an issue",
       "webhookId": "6643a26a-d9ce-4562-adf7-b8982c40bf82",
       "credentials": {
@@ -171,10 +143,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1040,
-        -144
+        1280,
+        -448
       ],
-      "id": "2240c8eb-2635-4e29-bef4-ad12a7b8c4f5",
+      "id": "11778952-d077-4fe5-8084-77dffa2ff2a2",
       "name": "Get issue comments",
       "credentials": {
         "githubApi": {
@@ -195,18 +167,18 @@
           "value": "={{ $('Configure').item.json.repository_url }}",
           "mode": "url"
         },
-        "title": "={{ $('Ensure Task').item.json.summary }}",
-        "body": "={{ $('Ensure Task').item.json.instructions }}",
+        "title": "={{ $('Task Ops Entry').item.json.summary }}",
+        "body": "={{ $('Task Ops Entry').item.json.body }}",
         "labels": [],
         "assignees": []
       },
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        832,
-        64
+        1072,
+        -240
       ],
-      "id": "eb3b0dc2-c827-4d8f-a5b5-0db620cad43b",
+      "id": "8c20c3c6-6794-4c28-aa18-e9fd75cc6429",
       "name": "Create an issue",
       "webhookId": "f32c3377-8ece-4dc0-80de-c31016b370b0",
       "credentials": {
@@ -223,10 +195,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
-        -144
+        1488,
+        -448
       ],
-      "id": "48f62fab-f2a1-4c59-81bd-8bc8248508bb",
+      "id": "367b783e-ce68-49b7-b2a4-c856c69a383e",
       "name": "Normalize existing task"
     },
     {
@@ -276,10 +248,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1040,
-        64
+        1280,
+        -240
       ],
-      "id": "336ea04c-c980-4da6-94a3-a80107e4a3c4",
+      "id": "098c8439-cf1a-4b53-b3be-90328bf79efe",
       "name": "Prepare created task"
     },
     {
@@ -287,10 +259,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1472,
-        -32
+        1712,
+        -336
       ],
-      "id": "671c7379-01a7-4074-ade1-cfbeea0c47b4",
+      "id": "cade33f0-4294-438f-bf4d-46b2eef6fa14",
       "name": "Success"
     },
     {
@@ -311,11 +283,228 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        -368,
-        -48
+        -288,
+        -160
       ],
-      "id": "9880ecd4-d782-43ad-b868-ca8e0c7a856f",
+      "id": "2b87118e-24fa-4e3e-923a-a29d85ed7a8a",
       "name": "Configure"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Task Ops Entry').item.json.operation }}",
+                    "rightValue": "ensure-task",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4e1ef63b-a776-47f9-9443-b45e99f732e3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ensure-task"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bdbf6f0f-d791-427f-a3fe-147e4d2ebb3e",
+                    "leftValue": "={{ $('Task Ops Entry').item.json.operation }}",
+                    "rightValue": "post-comment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "post-comment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -80,
+        -160
+      ],
+      "id": "3b7ed1bd-b22b-4524-a3eb-a0dfc2405f57",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Task Ops Entry').item.json.task_system || $('Configure').item.json.default_task_system }}",
+                    "rightValue": "github",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6a25400c-120d-4153-9fcb-58e49b421009"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "github"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        320,
+        -64
+      ],
+      "id": "5a90362f-0a42-4902-82ea-c7686a63c9f6",
+      "name": "Choose Task System1"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Task ID must be provided"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        832,
+        80
+      ],
+      "id": "5346d433-0246-444d-97a3-2f8d9b285d7d",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "operation": "createComment",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Configure').item.json.repository_url }}",
+          "mode": "url"
+        },
+        "issueNumber": "={{ $('Task Ops Entry').item.json.task_id }}",
+        "body": "={{ $('Task Ops Entry').item.json.body }}"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        -16
+      ],
+      "id": "79cf621a-1502-4395-8095-29668741df4c",
+      "name": "Create a comment on an issue",
+      "webhookId": "ea3ef5bc-0cd3-46d7-8b83-4ff4a35c1b78",
+      "credentials": {
+        "githubApi": {
+          "id": "GaRxZmasFeiFFbDt",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "task_system"
+            },
+            {
+              "name": "task_id"
+            },
+            {
+              "name": "summary"
+            },
+            {
+              "name": "body"
+            },
+            {
+              "name": "operation"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        -160
+      ],
+      "id": "e019d92b-ebfa-4d41-b922-4f593eca035f",
+      "name": "Task Ops Entry"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "435061ab-86e9-4997-8b4c-95f231d62bc8",
+              "leftValue": "={{ $('Task Ops Entry').item.json.task_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        -64
+      ],
+      "id": "d080e42f-04e1-4733-b509-eb41e0043bc2",
+      "name": "If task provided for comment"
     }
   ],
   "connections": {
@@ -342,17 +531,6 @@
         [
           {
             "node": "If task provided",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ensure Task": {
-      "main": [
-        [
-          {
-            "node": "Configure",
             "type": "main",
             "index": 0
           }
@@ -418,7 +596,70 @@
       "main": [
         [
           {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
             "node": "Choose Task System",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Choose Task System1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose Task System1": {
+      "main": [
+        [
+          {
+            "node": "If task provided for comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a comment on an issue": {
+      "main": [
+        []
+      ]
+    },
+    "Task Ops Entry": {
+      "main": [
+        [
+          {
+            "node": "Configure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If task provided for comment": {
+      "main": [
+        [
+          {
+            "node": "Create a comment on an issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
             "type": "main",
             "index": 0
           }
@@ -430,7 +671,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "3cbc21d4-b864-4f9e-9639-1dd75aaac1e8",
+  "versionId": "a5c08f16-fc7d-4edd-afad-9328cdcd6fea",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"

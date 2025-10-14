@@ -22,10 +22,10 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        -2080,
-        208
+        688,
+        -256
       ],
-      "id": "d7419fba-aaa0-48ac-85ce-59305f171af4",
+      "id": "9f0eee8c-a824-45fc-8d80-64613f2dbe62",
       "name": "Proofread task",
       "retryOnFail": true,
       "credentials": {
@@ -65,10 +65,10 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        -992,
-        208
+        1776,
+        -256
       ],
-      "id": "016ba69b-b7a1-4e32-b8c6-e1024c90f6a7",
+      "id": "f51b9777-1b7f-4fcf-afc3-01c7f4297b30",
       "name": "Run Agent",
       "webhookId": "3154a9e9-b7f8-4596-9bec-cae2b91938fb",
       "retryOnFail": true,
@@ -86,10 +86,10 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -2528,
-        208
+        240,
+        -256
       ],
-      "id": "391b609a-963b-4ffb-88f3-cf3294893c8e",
+      "id": "cd61d647-0534-49e5-813f-73f07d05da27",
       "name": "AITask Command Received"
     },
     {
@@ -157,10 +157,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1728,
-        208
+        1040,
+        -256
       ],
-      "id": "831ba2bb-4d6e-4b81-8333-339732206c2b",
+      "id": "6eaed704-d5c4-4391-b653-0e896308a472",
       "name": "Full Context"
     },
     {
@@ -181,10 +181,10 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        -2320,
-        208
+        448,
+        -256
       ],
-      "id": "0d5bab78-bd6c-4308-9c9d-500a8e506c3b",
+      "id": "ed4bf2d6-d88d-4329-bbf1-8a64db6273b5",
       "name": "Configure"
     },
     {
@@ -268,10 +268,10 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        -1520,
-        208
+        1248,
+        -256
       ],
-      "id": "b83c855e-fa9f-424d-9327-4dff6b7f1ec9",
+      "id": "93473d25-fcf3-40d0-9fe7-6f9563fc515c",
       "name": "Report instructions as perceived"
     },
     {
@@ -281,7 +281,7 @@
           "value": "fYWsAFNMx99n8Uel",
           "mode": "list",
           "cachedResultUrl": "/workflow/fYWsAFNMx99n8Uel",
-          "cachedResultName": "Gavrila - Ensure Task"
+          "cachedResultName": "Gavrila - Task Ops"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -289,7 +289,8 @@
             "task_system": "={{ $('Full Context').item.json.task_system }}",
             "task_id": "={{ $('Full Context').item.json.task_id }}",
             "summary": "={{ $('Full Context').item.json.summary }}",
-            "instructions": "={{ $('Full Context').item.json.instructions }}"
+            "operation": "ensure-task",
+            "body": "={{ $('Full Context').item.json.instructions }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -324,8 +325,18 @@
               "removed": false
             },
             {
-              "id": "instructions",
-              "displayName": "instructions",
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "operation",
+              "displayName": "operation",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -342,12 +353,96 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        -1312,
-        208
+        1456,
+        -256
       ],
-      "id": "ed918038-ae2d-4321-9f80-d732bd65f43b",
+      "id": "b9d40280-0619-416d-821e-82988d4f6a17",
       "name": "Ensure there is a task",
       "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fYWsAFNMx99n8Uel",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/fYWsAFNMx99n8Uel",
+          "cachedResultName": "Gavrila - Task Ops"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "task_system": "={{ $('Full Context').item.json.task_system }}",
+            "task_id": "={{ $('Ensure there is a task').item.json.task_id }}",
+            "operation": "post-comment",
+            "body": "=*Status*: {{ $('Run Agent').item.json.status }}\n*Summary*:\n{{ $('Run Agent').item.json.summary }}\n{{ $('Run Agent').item.json.commit_url ? '\\n*Commit*: ' + $('Run Agent').item.json.commit_url : '' }}\n{{ $('Run Agent').item.json.workflow_run_url ? '*Workflow Run*: ' + $('Run Agent').item.json.workflow_run_url : '' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "task_system",
+              "displayName": "task_system",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "task_id",
+              "displayName": "task_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "operation",
+              "displayName": "operation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2256,
+        -256
+      ],
+      "id": "a169e54f-42a5-448d-a046-85c526fd7c58",
+      "name": "Post a comment to the task"
     },
     {
       "parameters": {
@@ -430,11 +525,11 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        -720,
-        208
+        2048,
+        -256
       ],
-      "id": "bfe45645-9f7a-4f97-bdba-e921b0b77296",
-      "name": "Report Summary"
+      "id": "84dc1447-04a5-4448-aa7f-b72b21f5a43e",
+      "name": "Report to chat"
     }
   ],
   "connections": {
@@ -453,7 +548,7 @@
       "main": [
         [
           {
-            "node": "Report Summary",
+            "node": "Report to chat",
             "type": "main",
             "index": 0
           }
@@ -514,13 +609,24 @@
           }
         ]
       ]
+    },
+    "Report to chat": {
+      "main": [
+        [
+          {
+            "node": "Post a comment to the task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "9e49f02d-9f1f-43f3-8378-b1f56746dfcf",
+  "versionId": "8e92cd3e-2fa1-45d3-a6d2-2e9bd2559f17",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
