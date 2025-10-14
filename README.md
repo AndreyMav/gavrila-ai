@@ -70,8 +70,14 @@ N8N_WEBHOOK_PATH=/webhook/your-path
 git clone https://github.com/AndreyMav/gavrila-ai.git
 cd gavrila-ai
 
+# Install development tools and git hooks (for contributors)
+# See DEVELOPMENT.md for detailed development setup
+./scripts/install-hooks.sh
+
 # No additional dependencies to install - workflows run in n8n and GitHub Actions
 ```
+
+> **For Contributors**: See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development setup instructions, including git hooks installation and workflow guidelines.
 
 ### 2. n8n Deployment
 Deploy n8n on your Hostinger VPC or preferred hosting platform:

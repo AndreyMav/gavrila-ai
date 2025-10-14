@@ -1,0 +1,85 @@
+#!/bin/bash
+#
+# Pre-commit hook to strip pinData from n8n workflow files
+#
+# This hook automatically removes pinData from any staged n8n workflow
+# JSON files before committing. This prevents test/debug data from being
+# committed to the repository.
+#
+
+set -e
+
+# Color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo -e "${RED}Error: jq is not installed.${NC}"
+    echo "Please install jq to use this pre-commit hook:"
+    echo "  macOS: brew install jq"
+    echo "  Ubuntu/Debian: sudo apt-get install jq"
+    echo "  Other: https://stedolan.github.io/jq/download/"
+    echo ""
+    echo "To bypass this hook temporarily, use: git commit --no-verify"
+    exit 1
+fi
+
+# Get list of staged n8n JSON files
+staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep '^n8n/.*\.json$' || true)
+
+if [ -z "$staged_files" ]; then
+    # No n8n JSON files staged, nothing to do
+    exit 0
+fi
+
+echo -e "${BLUE}=== Pre-commit: Checking n8n workflow files for pinData ===${NC}"
+echo ""
+
+modified=false
+
+# Process each staged file
+while IFS= read -r file; do
+    if [ ! -f "$file" ]; then
+        continue
+    fi
+    
+    # Check if the file contains pinData
+    if jq -e '.pinData' "$file" > /dev/null 2>&1; then
+        has_data=$(jq '.pinData | length' "$file")
+        
+        if [ "$has_data" -gt 0 ]; then
+            echo -e "${YELLOW}Found pinData in: $file${NC}"
+            echo -e "  Removing pinData for nodes: $(jq -r '.pinData | keys | join(", ")' "$file")"
+            
+            # Create a temporary file
+            temp_file=$(mktemp)
+            
+            # Remove pinData and write to temp file
+            jq 'del(.pinData)' "$file" > "$temp_file"
+            
+            # Replace original file
+            mv "$temp_file" "$file"
+            
+            # Re-stage the modified file
+            git add "$file"
+            
+            echo -e "  ${GREEN}✓ Stripped pinData and re-staged file${NC}"
+            modified=true
+        fi
+    fi
+done <<< "$staged_files"
+
+if [ "$modified" = true ]; then
+    echo ""
+    echo -e "${GREEN}✓ Pre-commit hook completed: pinData removed from staged files${NC}"
+else
+    echo -e "${GREEN}✓ No pinData found in staged n8n files${NC}"
+fi
+
+echo ""
+exit 0
+
