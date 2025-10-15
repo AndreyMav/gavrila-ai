@@ -459,7 +459,7 @@
             "source": "={{ $('Full Context').item.json.source }}",
             "message_id": "={{ $('Full Context').item.json.message_id }}",
             "user_id": "={{ $('Full Context').item.json.user_id }}",
-            "message": "=*Status*: {{ $('Run Agent').item.json.status }}\n*Summary*:\n{{ $('Run Agent').item.json.summary }}\n{{ $('Run Agent').item.json.commit_url ? '\\n*Commit*: ' + $('Run Agent').item.json.commit_url : '' }}\n{{ $('Run Agent').item.json.workflow_run_url ? '*Workflow Run*: ' + $('Run Agent').item.json.workflow_run_url : '' }}\n---------------------",
+            "message": "=*Task URL*: {{ $('Ensure there is a task').item.json.url }}\n*Status*: {{ $('Run Agent').item.json.status }}\n*Summary*:\n{{ $('Run Agent').item.json.summary }}\n{{ $('Run Agent').item.json.commit_url ? '\\n*Commit*: ' + $('Run Agent').item.json.commit_url : '' }}\n{{ $('Run Agent').item.json.workflow_run_url ? '*Workflow Run*: ' + $('Run Agent').item.json.workflow_run_url : '' }}\n---------------------",
             "channel_id": "={{ $('Full Context').item.json.channel_id }}"
           },
           "matchingColumns": [],
@@ -626,7 +626,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "9ffdf7b6-b1bf-435e-b974-e29ddb0eeacc",
+  "versionId": "9fca28c9-074a-4514-83b6-abd06a5959b8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
