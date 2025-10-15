@@ -745,14 +745,8 @@
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "linearApi",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "query",
-              "value": "query { issue(id: \"e2b91bb6-7ea0-474d-b332-b0ee56fd3ddc\") { id title url identifier } }"
-            }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"query { issue(id: \\\"{{ $json.task_id }}\\\") { url } }\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -780,6 +774,28 @@
       ],
       "id": "96369ec5-28f7-43ea-b942-8de21df1e05d",
       "name": "Linear task ensured"
+    },
+    {
+      "parameters": {
+        "resource": "comment",
+        "issueId": "={{ $('Task Ops Entry').item.json.task_id }}",
+        "comment": "={{ $('Task Ops Entry').item.json.body }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linear",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        320
+      ],
+      "id": "cb3e5b69-4624-4135-8de1-d77e03bb4b1d",
+      "name": "Add a comment to a Linear issue",
+      "credentials": {
+        "linearApi": {
+          "id": "xd6HBMsVjvekU4hz",
+          "name": "Linear account"
+        }
+      }
     },
     {
       "parameters": {
@@ -832,29 +848,7 @@
         -192
       ],
       "id": "2e5d9869-88d6-4db3-8b02-81c34b28e191",
-      "name": "Prepare created Linear task1"
-    },
-    {
-      "parameters": {
-        "resource": "comment",
-        "issueId": "={{ $('Task Ops Entry').item.json.task_id }}",
-        "comment": "={{ $('Task Ops Entry').item.json.body }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.linear",
-      "typeVersion": 1.1,
-      "position": [
-        1056,
-        320
-      ],
-      "id": "cb3e5b69-4624-4135-8de1-d77e03bb4b1d",
-      "name": "Add a comment to a Linear issue",
-      "credentials": {
-        "linearApi": {
-          "id": "xd6HBMsVjvekU4hz",
-          "name": "Linear account"
-        }
-      }
+      "name": "Populate URL"
     }
   ],
   "connections": {
@@ -1118,14 +1112,14 @@
       "main": [
         [
           {
-            "node": "Prepare created Linear task1",
+            "node": "Populate URL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare created Linear task1": {
+    "Populate URL": {
       "main": [
         [
           {
@@ -1141,7 +1135,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "dfbfe553-0593-48d8-b301-f32e5349b1c6",
+  "versionId": "011d2f52-5755-485a-b861-2fe57a917c2b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
