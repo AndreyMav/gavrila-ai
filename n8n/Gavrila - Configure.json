@@ -35,6 +35,18 @@
               "name": "authorized_slack_user_ids",
               "value": "U09LHK2NA3T",
               "type": "string"
+            },
+            {
+              "id": "97a28a95-e5e5-4bc4-a3dd-ae469101203d",
+              "name": "linear_team_uuid",
+              "value": "2229a76a-0639-4869-89cb-53d0e62458f1",
+              "type": "string"
+            },
+            {
+              "id": "3bf94a82-c85f-498d-850f-14c1ac093bea",
+              "name": "linear_inprogress_state_uuid",
+              "value": "21856645-63fb-4175-8514-4dea2acbeaaa",
+              "type": "string"
             }
           ]
         },
@@ -68,7 +80,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e7caa3ea-0041-49e1-a32e-272ddadf6d2f",
+  "versionId": "e7e0a8bf-f934-4346-8eac-d921dd2bd6c6",
   "meta": {
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
   },

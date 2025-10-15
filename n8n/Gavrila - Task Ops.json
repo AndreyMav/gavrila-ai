@@ -28,6 +28,31 @@
               },
               "renameOutput": true,
               "outputKey": "github"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fd09be2a-ee94-4e12-8de6-e94f67467ea7",
+                    "leftValue": "={{ $('Task Ops Entry').item.json.task_system || $('Configure').item.json.default_task_system }}",
+                    "rightValue": "linear",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "linear"
             }
           ]
         },
@@ -70,8 +95,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        608,
-        -352
+        576,
+        -608
       ],
       "id": "7b3735f2-15fb-431d-88a7-c6847f0b4e50",
       "name": "If task provided"
@@ -94,8 +119,8 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1072,
-        -448
+        1040,
+        -704
       ],
       "id": "682377af-3898-4d73-a47b-8ae007adf39d",
       "name": "Get an issue",
@@ -143,8 +168,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1280,
-        -448
+        1248,
+        -704
       ],
       "id": "11778952-d077-4fe5-8084-77dffa2ff2a2",
       "name": "Get issue comments",
@@ -175,8 +200,8 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1072,
-        -240
+        1040,
+        -496
       ],
       "id": "8c20c3c6-6794-4c28-aa18-e9fd75cc6429",
       "name": "Create an issue",
@@ -195,8 +220,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1488,
-        -448
+        1456,
+        -704
       ],
       "id": "367b783e-ce68-49b7-b2a4-c856c69a383e",
       "name": "Normalize existing task"
@@ -248,22 +273,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1280,
-        -240
+        1248,
+        -496
       ],
       "id": "098c8439-cf1a-4b53-b3be-90328bf79efe",
       "name": "Prepare created task"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        1712,
-        -336
-      ],
-      "id": "cade33f0-4294-438f-bf4d-46b2eef6fa14",
-      "name": "Success"
     },
     {
       "parameters": {
@@ -382,6 +396,31 @@
               },
               "renameOutput": true,
               "outputKey": "github"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bf32031c-1035-468f-9a3a-e42db0d446b1",
+                    "leftValue": "={{ $('Task Ops Entry').item.json.task_system || $('Configure').item.json.default_task_system }}",
+                    "rightValue": "linear",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "linear"
             }
           ]
         },
@@ -390,8 +429,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        320,
-        -64
+        640,
+        160
       ],
       "id": "5a90362f-0a42-4902-82ea-c7686a63c9f6",
       "name": "Choose Task System1"
@@ -403,8 +442,8 @@
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
-        832,
-        80
+        368,
+        144
       ],
       "id": "5346d433-0246-444d-97a3-2f8d9b285d7d",
       "name": "Stop and Error"
@@ -428,8 +467,8 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1072,
-        -16
+        1056,
+        112
       ],
       "id": "79cf621a-1502-4395-8095-29668741df4c",
       "name": "Create a comment on an issue",
@@ -500,11 +539,322 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        608,
-        -64
+        208,
+        -16
       ],
       "id": "d080e42f-04e1-4733-b509-eb41e0043bc2",
       "name": "If task provided for comment"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "435061ab-86e9-4997-8b4c-95f231d62bc8",
+              "leftValue": "={{ $('Task Ops Entry').item.json.task_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        -288
+      ],
+      "id": "9d6226fb-ae1b-40d0-b019-76732760efa4",
+      "name": "If task provided (Linear)"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueId": "={{ $('Task Ops Entry').item.json.task_id }}"
+      },
+      "type": "n8n-nodes-base.linear",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        -320
+      ],
+      "id": "d9a933f7-2527-41a8-bd1a-91e79229d464",
+      "name": "Get Linear issue",
+      "credentials": {
+        "linearApi": {
+          "id": "xd6HBMsVjvekU4hz",
+          "name": "Linear account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const comment = $('Get Linear task comments').item.json.data.issue.comments.nodes.map(n => ({\n  id: n.id,\n  body: n.body ?? '',\n  created_at: n.createdAt ?? null,\n  updated_at: n.updatedAt ?? null,\n  author_name: n.user?.name ?? null,\n  author_email: n.user?.email ?? null,\n}));\n\nreturn {\n  task_id: $('Get Linear issue').item.json.identifier,\n  url: '',\n  title: $('Get Linear issue').item.json.title,\n  author: $('Get Linear issue').item.json.creator ?? 'Unknown',\n  state: $('Get Linear issue').item.json.state.name,\n  instructions: $('Get Linear issue').item.json.description,\n  comments: comment\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -320
+      ],
+      "id": "5c7947ea-70a8-405f-9120-1d960a36b527",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linear.app/graphql",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "linearApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"query($issueId: String!) { issue(id: $issueId) { id title comments { nodes { id body createdAt updatedAt user { name email } } } } }\",\n  \"variables\": {\n    \"issueId\": \"{{ $('Task Ops Entry').item.json.task_id }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1232,
+        -320
+      ],
+      "id": "a83ea79a-2a60-462b-a209-ea0c193d86f9",
+      "name": "Get Linear task comments",
+      "credentials": {
+        "linearApi": {
+          "id": "xd6HBMsVjvekU4hz",
+          "name": "Linear account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        -592
+      ],
+      "id": "cade33f0-4294-438f-bf4d-46b2eef6fa14",
+      "name": "GitHub task ensured"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "217e01b2-950c-45dc-be51-a1e975fcf44f",
+              "name": "task_id",
+              "value": "={{ $json.identifier }}",
+              "type": "string"
+            },
+            {
+              "id": "e3928f0a-7c98-41c4-9b02-690bd617ef01",
+              "name": "url",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "7b606685-d468-4383-983b-7901ae46d47a",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "321f46c7-2ea6-4edb-bbe2-70286e91908c",
+              "name": "author",
+              "value": "={{ $json.creator.displayName }}",
+              "type": "string"
+            },
+            {
+              "id": "681cae0f-2065-4fcb-87df-590e36ffd2b5",
+              "name": "state",
+              "value": "={{ $json.state.name }}",
+              "type": "string"
+            },
+            {
+              "id": "80bfdc3b-dd49-4d6c-9971-55fdbb83061b",
+              "name": "instructions",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        -96
+      ],
+      "id": "07465f2f-6130-4f86-80f5-e39583ccee2f",
+      "name": "Prepare created Linear task"
+    },
+    {
+      "parameters": {
+        "teamId": "={{ $('Configure').item.json.linear_team_uuid }}",
+        "title": "={{ $('Task Ops Entry').item.json.summary }}",
+        "additionalFields": {
+          "description": "={{ $('Task Ops Entry').item.json.body }}",
+          "stateId": "={{ $('Configure').item.json.linear_inprogress_state_uuid }}"
+        }
+      },
+      "type": "n8n-nodes-base.linear",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "68160592-cb89-4c0c-905b-508f1c8d2bac",
+      "name": "Create Linear task",
+      "credentials": {
+        "linearApi": {
+          "id": "xd6HBMsVjvekU4hz",
+          "name": "Linear account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        -192
+      ],
+      "id": "05100bb3-abd3-4f62-bbb3-f186c5ac0a43",
+      "name": "Linear Task info without URL"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linear.app/graphql",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "linearApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "query { issue(id: \"e2b91bb6-7ea0-474d-b332-b0ee56fd3ddc\") { id title url identifier } }"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1872,
+        -192
+      ],
+      "id": "ade679e5-2e0e-42e3-9283-ed04f7a90acb",
+      "name": "HTTP Request",
+      "credentials": {
+        "linearApi": {
+          "id": "xd6HBMsVjvekU4hz",
+          "name": "Linear account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2304,
+        -192
+      ],
+      "id": "96369ec5-28f7-43ea-b942-8de21df1e05d",
+      "name": "Linear task ensured"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "217e01b2-950c-45dc-be51-a1e975fcf44f",
+              "name": "task_id",
+              "value": "={{ $('Linear Task info without URL').item.json.task_id }}",
+              "type": "string"
+            },
+            {
+              "id": "e3928f0a-7c98-41c4-9b02-690bd617ef01",
+              "name": "url",
+              "value": "={{ $json.data.issue.url }}",
+              "type": "string"
+            },
+            {
+              "id": "7b606685-d468-4383-983b-7901ae46d47a",
+              "name": "title",
+              "value": "={{ $('Linear Task info without URL').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "321f46c7-2ea6-4edb-bbe2-70286e91908c",
+              "name": "author",
+              "value": "={{ $('Linear Task info without URL').item.json.author }}",
+              "type": "string"
+            },
+            {
+              "id": "681cae0f-2065-4fcb-87df-590e36ffd2b5",
+              "name": "state",
+              "value": "={{ $('Linear Task info without URL').item.json.state }}",
+              "type": "string"
+            },
+            {
+              "id": "80bfdc3b-dd49-4d6c-9971-55fdbb83061b",
+              "name": "instructions",
+              "value": "={{ $('Linear Task info without URL').item.json.instructions }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2080,
+        -192
+      ],
+      "id": "2e5d9869-88d6-4db3-8b02-81c34b28e191",
+      "name": "Prepare created Linear task1"
+    },
+    {
+      "parameters": {
+        "resource": "comment",
+        "issueId": "={{ $('Task Ops Entry').item.json.task_id }}",
+        "comment": "={{ $('Task Ops Entry').item.json.body }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linear",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        320
+      ],
+      "id": "cb3e5b69-4624-4135-8de1-d77e03bb4b1d",
+      "name": "Add a comment to a Linear issue",
+      "credentials": {
+        "linearApi": {
+          "id": "xd6HBMsVjvekU4hz",
+          "name": "Linear account"
+        }
+      }
     }
   ],
   "connections": {
@@ -531,6 +881,13 @@
         [
           {
             "node": "If task provided",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If task provided (Linear)",
             "type": "main",
             "index": 0
           }
@@ -563,7 +920,7 @@
       "main": [
         [
           {
-            "node": "Success",
+            "node": "GitHub task ensured",
             "type": "main",
             "index": 0
           }
@@ -585,7 +942,7 @@
       "main": [
         [
           {
-            "node": "Success",
+            "node": "GitHub task ensured",
             "type": "main",
             "index": 0
           }
@@ -614,7 +971,7 @@
         ],
         [
           {
-            "node": "Choose Task System1",
+            "node": "If task provided for comment",
             "type": "main",
             "index": 0
           }
@@ -625,7 +982,14 @@
       "main": [
         [
           {
-            "node": "If task provided for comment",
+            "node": "Create a comment on an issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add a comment to a Linear issue",
             "type": "main",
             "index": 0
           }
@@ -652,7 +1016,7 @@
       "main": [
         [
           {
-            "node": "Create a comment on an issue",
+            "node": "Choose Task System1",
             "type": "main",
             "index": 0
           }
@@ -665,13 +1029,119 @@
           }
         ]
       ]
+    },
+    "If task provided (Linear)": {
+      "main": [
+        [
+          {
+            "node": "Get Linear issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Linear task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Linear issue": {
+      "main": [
+        [
+          {
+            "node": "Get Linear task comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Linear task comments": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Linear Task info without URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Linear task": {
+      "main": [
+        [
+          {
+            "node": "Prepare created Linear task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare created Linear task": {
+      "main": [
+        [
+          {
+            "node": "Linear Task info without URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Linear Task info without URL": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Prepare created Linear task1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare created Linear task1": {
+      "main": [
+        [
+          {
+            "node": "Linear task ensured",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a5c08f16-fc7d-4edd-afad-9328cdcd6fea",
+  "versionId": "dfbfe553-0593-48d8-b301-f32e5349b1c6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
