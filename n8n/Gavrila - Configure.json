@@ -25,6 +25,12 @@
               "type": "string"
             },
             {
+              "id": "e272a303-b22b-4852-8611-eacda3b37038",
+              "name": "main_branch",
+              "value": "main",
+              "type": "string"
+            },
+            {
               "id": "a87d9aa1-2460-4b52-b07d-b5cfbe5e2484",
               "name": "default_task_system",
               "value": "github",
@@ -80,7 +86,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e7e0a8bf-f934-4346-8eac-d921dd2bd6c6",
+  "versionId": "2c792b9d-0796-416d-a199-4c516eace53a",
   "meta": {
     "instanceId": "04d1d37e120bf230231a954423709cc89297b436c5ea28c06a42c9abeb123424"
   },
